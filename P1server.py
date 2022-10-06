@@ -1,5 +1,7 @@
+from ast import arg
 from socket import *
 import sys
+from xmlrpc.client import ResponseError
 
 class Node: # Customer Record Class
     def __init__(self,customerID, customerFirstName, customerLastName, customerPhone, customerAddress):
@@ -32,44 +34,43 @@ cDB = customerDB()  # create customer database
 def showAll():
     return cDB.showAll()
     
-def show(ID):
-    r_entry = Node('','','','','')
+def show(function):
     for entry in cDB.db:
-        if entry.id == int(ID):
+        if entry.id == int(function[1]):
             return entry.display()
-    r_entry = 'Customer does not exist'
-    return r_entry
-    
-def insert(ID, fname, lname, phone, address):
-    customer = Node(nextCustomerID, fname, lname, phone, address)
-    cDB.db.append(customer)
-
-def remove(ID):
-    for entry in cDB.db:
-        if entry.id == int(ID):
-            cDB.db.remove(entry)
-            break
     return 'Customer not found'
 
-def search(lname):
-    for entry in cDB.db:
-        if entry.last == str(lname):
-            return entry.display()
-    return 'Customer does not exist'
+def insert(ID, function):
+    customer = Node(ID, function[1], function[2], function[3], function[4])
+    cDB.db.append(customer)
+    return 'Customer successfully added'
 
-def change(id, fname, lname, phone, address):
+def remove(function):
     for entry in cDB.db:
-        if entry.id == int(id):
-            entry.first = fname
-            entry.last = lname
-            entry.phone = phone
-            entry.address = address
+        if entry.id == int(function[1]):
+            cDB.db.remove(entry)
+            return 'Customer successfully removed'
+    return 'Customer not found'
+
+def search(function):
+    for entry in cDB.db:
+        if entry.last == str(function[1]):
+            return entry.display()
+    return 'Customer not found'
+
+def change(function):
+    for entry in cDB.db:
+        if entry.id == int(function[1]):
+            entry.first = function[2]
+            entry.last = function[3]
+            entry.phone = function[4]
+            entry.address = function[5]
             return 'Customer changed successfully'
     return 'Customer not found'
 
-def dbupload(file):
+def dbupload(function):
     cDB.db.clear()
-    newDB = open(file)
+    newDB = open(function[1])
     newDBL = newDB.readlines()
     for item in newDBL:
         item2 = item.replace('Customer record: ', '')
@@ -80,14 +81,17 @@ def dbupload(file):
     newDB.close()
     return 'New database uploaded successfully'
 
-def dbdownload(file):
-    DBFile = open(file, 'w')
+def dbdownload(function):
+    DBFile = open(function[1], 'w')
     for item in cDB.db:
         DBFile.write(item.display() + '\n')
     DBFile.close()
     return 'Database downloaded successfully'
         
-        
+def argnum_error(code):
+    message = 'This command takes {} arguments. Check argument list and try again.'
+    return message.format(str(code))
+
 #Fill in start                                                              
 # Many lines of code to fill in here
 #Fill in end
@@ -101,28 +105,52 @@ while True:
     connectionSocket, addr = serverSocket.accept()
     message = connectionSocket.recv(1024)
     function = message.decode().split()
+    if len(function) == 0:
+        function.append('')
     match function[0]:
         case 'showAll':
-            response = showAll()
+            if len(function) == 1:
+                response = showAll()
+            else:
+                response = argnum_error(0)
         case 'show':
-            response = show(function[1])
+            if len(function) == 2:
+                response = show(function)
+            else:
+                response = argnum_error(1)
         case 'insert':
-            nextCustomerID+=1
-            insert(nextCustomerID, function[1], function[2], function[3], function[4])
-            response = 'Success'
+            if len(function) == 5:
+                nextCustomerID+=1
+                response = insert(nextCustomerID, function)
+            else:
+                response = argnum_error(4)
+        case 'remove':
+            if len(function) == 2:
+                response = remove(function)
+            else:
+                response = argnum_error(1)
+        case 'search':
+            if len(function) == 2:
+                response = search(function)
+            else:
+                response = argnum_error(1)
+        case 'change':
+            if len(function) == 6:
+                response = change(function)
+            else:
+                response = argnum_error(5)
+        case 'dbdownload':
+            if len(function) == 2:
+                response = dbdownload(function)
+            else:
+                response = argnum_error(1)
+        case 'dbupload':
+            if len(function) == 2:
+                response = dbupload(function)
+            else:
+                response = argnum_error(1)
         case 'exit':
             break
-        case 'remove':
-            remove(function[1])
-            response = 'Customer removed'
-        case 'search':
-            response = search(function[1])
-        case 'change':
-            response = change(function[1], function[2], function[3], function[4], function[5])
-        case 'dbdownload':
-            response = dbdownload(function[1])
-        case 'dbupload':
-            response = dbupload(function[1])
         case _:
             response = 'No action taken'
     connectionSocket.sendall(response.encode())

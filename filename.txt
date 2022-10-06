@@ -1,0 +1,3 @@
+Customer record: 1 ; blake ; smith ; 111 ; place
+Customer record: 2 ; song ; smith ; 222 ; place
+Customer record: 4 ; garys ; mod ; 420 ; blaze

@@ -10,8 +10,8 @@ while True:
     clientSocket.send(inputFromKeyboard.encode()) # send command to server
     if (inputFromKeyboard=='exit'): # If input from user is 'exit', close connection
         break
-    print ('waiting for response from server...')
+    #print ('waiting for response from server...')
     receivedMessage = clientSocket.recv(1024) # Get reply from server
-    print ('server response received: ')
+    #print ('server response received: ')
     print (receivedMessage.decode()) # Print the reply on the screen
     clientSocket.close()
