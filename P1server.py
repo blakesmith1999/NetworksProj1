@@ -1,8 +1,5 @@
 from ast import arg
 from socket import *
-import sys
-from xmlrpc.client import ResponseError
-
 class Node: # Customer Record Class
     def __init__(self,customerID, customerFirstName, customerLastName, customerPhone, customerAddress):
         self.id = customerID
