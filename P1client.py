@@ -7,11 +7,26 @@ while True:
     clientSocket.settimeout(None)
     clientSocket.connect((HOST, PORT))
     inputFromKeyboard = input('Enter command: ') # get command from user
-    clientSocket.send(inputFromKeyboard.encode()) # send command to server
+    if (inputFromKeyboard == 'dbupload'):
+        dbU = open('filename.txt')
+        dbUL = dbU.readlines()
+        dbUL.insert('dbupload', 0)
+        message = dbUL
+    else:
+        message = inputFromKeyboard
+
+    clientSocket.sendall(message.encode()) # send command to server
     if (inputFromKeyboard=='exit'): # If input from user is 'exit', close connection
         break
+
     #print ('waiting for response from server...')
-    receivedMessage = clientSocket.recv(1024) # Get reply from server
+    fragment = []
+    while True:
+        chunk = clientSocket.recv(1024)
+        if not chunk:
+            break
+        fragment.append(chunk.decode())
+    receivedMessage = "".join(fragment)
     #print ('server response received: ')
-    print (receivedMessage.decode()) # Print the reply on the screen
+    print (receivedMessage) # Print the reply on the screen
     clientSocket.close()

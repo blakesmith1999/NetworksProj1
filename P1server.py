@@ -35,25 +35,25 @@ def show(function):
     for entry in cDB.db:
         if entry.id == int(function[1]):
             return entry.display()
-    return 'Customer not found'
+    return 'ERROR: No match was found!'
 
 def insert(ID, function):
     customer = Node(ID, function[1], function[2], function[3], function[4])
     cDB.db.append(customer)
-    return 'Customer successfully added'
+    return 'Operation was completed successfully.'
 
 def remove(function):
     for entry in cDB.db:
         if entry.id == int(function[1]):
             cDB.db.remove(entry)
-            return 'Customer successfully removed'
-    return 'Customer not found'
+            return 'Operation was completed successfully.'
+    return 'ERROR: No match was found!'
 
 def search(function):
     for entry in cDB.db:
         if entry.last == str(function[1]):
             return entry.display()
-    return 'Customer not found'
+    return 'ERROR: No match was found!'
 
 def change(function):
     for entry in cDB.db:
@@ -62,8 +62,8 @@ def change(function):
             entry.last = function[3]
             entry.phone = function[4]
             entry.address = function[5]
-            return 'Customer changed successfully'
-    return 'Customer not found'
+            return 'Operation was completed successfully.'
+    return 'ERROR: No match was found!'
 
 def dbupload(function):
     cDB.db.clear()
@@ -76,14 +76,14 @@ def dbupload(function):
         custN = Node(int(customer[0]), customer[1], customer[2], customer[3], customer[4])
         cDB.db.append(custN)
     newDB.close()
-    return 'New database uploaded successfully'
+    return 'Operation was completed successfully.'
 
 def dbdownload(function):
     DBFile = open(function[1], 'w')
     for item in cDB.db:
         DBFile.write(item.display() + '\n')
     DBFile.close()
-    return 'Database downloaded successfully'
+    return 'Operation was completed successfully.'
         
 def argnum_error(code):
     message = 'This command takes {} arguments. Check argument list and try again.'
@@ -100,8 +100,14 @@ serverSocket.listen(1)
 print ('The server is ready to receive...')
 while True:
     connectionSocket, addr = serverSocket.accept()
-    message = connectionSocket.recv(1024)
-    function = message.decode().split()
+    fragment = []
+    while True:
+        chunk = connectionSocket.recv(1024)
+        if not chunk:
+            break
+        fragment.append(chunk.decode())
+    receivedMessage = "".join(fragment)
+    function = receivedMessage.split()
     if len(function) == 0:
         function.append('')
     match function[0]:
@@ -149,6 +155,6 @@ while True:
         case 'exit':
             break
         case _:
-            response = 'No action taken'
+            response = 'ERROR: The operation is not supported!'
     connectionSocket.sendall(response.encode())
     connectionSocket.close()
