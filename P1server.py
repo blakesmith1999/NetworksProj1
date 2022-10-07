@@ -8,7 +8,7 @@ class Node: # Customer Record Class
         self.phone = customerPhone
         self.address = customerAddress
     def display(self):  # display record
-        return 'Customer record: ' + str(self.id) + ' ; ' + self.first + ' ; ' + self.last + ' ; ' + self.phone + ' ; ' + self.address
+        return 'Customer record: ' + str(self.id) + ' ; ' + self.first + ' ; ' + self.last + ' ; ' + self.phone + ' ; ' + self.address + '\n'
 
 class customerDB: # Customer Database Class
     def __init__(self):
@@ -16,7 +16,7 @@ class customerDB: # Customer Database Class
     def showAll(self): # display all records
         allRecords = ''
         for record in self.db:
-            allRecords = allRecords + record.display() + '\n'
+            allRecords = allRecords + record.display()
         if (allRecords == ''):
             return 'Database is empty!'
         else:
@@ -66,24 +66,31 @@ def change(function):
     return 'ERROR: No match was found!'
 
 def dbupload(function):
+    #we get function here as a list with each word separately, no spaces. Need to reassemble each customer by line
+    database = "".join(function)
+    print(database)
+    DL = database.split("\n")
     cDB.db.clear()
-    newDB = open(function[1])
-    newDBL = newDB.readlines()
-    for item in newDBL:
-        item2 = item.replace('Customer record: ', '')
-        item3 = item2.replace('\n','')
-        customer = item3.split(' ; ')
-        custN = Node(int(customer[0]), customer[1], customer[2], customer[3], customer[4])
-        cDB.db.append(custN)
-    newDB.close()
+    print(DL)
+    for item in DL:
+        ignore = {'Customer', 'record:', '\n'}
+        if item not in ignore:
+            customer = item.split(' ; ')
+            custN = Node(int(customer[0]), customer[1], customer[2], customer[3], customer[4])
+            cDB.db.append(custN)
     return 'Operation was completed successfully.'
 
-def dbdownload(function):
-    DBFile = open(function[1], 'w')
+def dbdownload():
+    dbRet = ['dbdownload\n']
     for item in cDB.db:
-        DBFile.write(item.display() + '\n')
-    DBFile.close()
-    return 'Operation was completed successfully.'
+        dbRet.append(item.display())
+    return "".join(dbRet)
+
+    # DBFile = open(function[1], 'w')
+    # for item in cDB.db:
+    #     DBFile.write(item.display() + '\n')
+    # DBFile.close()
+    # return 'Operation was completed successfully.'
         
 def argnum_error(code):
     message = 'This command takes {} arguments. Check argument list and try again.'
@@ -100,12 +107,13 @@ serverSocket.listen(1)
 print ('The server is ready to receive...')
 while True:
     connectionSocket, addr = serverSocket.accept()
+    msgLen = int(connectionSocket.recv(1024).decode())
+    msgRecv = 0
     fragment = []
-    while True:
-        chunk = connectionSocket.recv(1024)
-        if not chunk:
-            break
-        fragment.append(chunk.decode())
+    while msgRecv < msgLen:
+        chunk = connectionSocket.recv(1024).decode()
+        fragment.append(chunk)
+        msgRecv += len(chunk)
     receivedMessage = "".join(fragment)
     function = receivedMessage.split()
     if len(function) == 0:
@@ -143,18 +151,17 @@ while True:
             else:
                 response = argnum_error(5)
         case 'dbdownload':
-            if len(function) == 2:
-                response = dbdownload(function)
+            if len(function) == 1:
+                response = dbdownload()
             else:
-                response = argnum_error(1)
+                response = argnum_error(0)
         case 'dbupload':
-            if len(function) == 2:
-                response = dbupload(function)
-            else:
-                response = argnum_error(1)
+            response = dbupload(function) #this is going to take significantly more work...
         case 'exit':
             break
         case _:
             response = 'ERROR: The operation is not supported!'
+
+    connectionSocket.send(str(len(response)).encode())
     connectionSocket.sendall(response.encode())
     connectionSocket.close()

@@ -9,24 +9,39 @@ while True:
     inputFromKeyboard = input('Enter command: ') # get command from user
     if (inputFromKeyboard == 'dbupload'):
         dbU = open('filename.txt')
-        dbUL = dbU.readlines()
-        dbUL.insert('dbupload', 0)
-        message = dbUL
+        dbUL = []
+        while dbU.readline() != '':
+            dbUL.append(dbU.readline())
+            dbUL.append('\n')
+        dbUL.insert(0, 'dbupload ')
+        dbU.close()
+        message = "".join(dbUL)
     else:
         message = inputFromKeyboard
+    clientSocket.send(str(len(message)).encode())
 
     clientSocket.sendall(message.encode()) # send command to server
     if (inputFromKeyboard=='exit'): # If input from user is 'exit', close connection
         break
 
     #print ('waiting for response from server...')
+    msgLen = int(clientSocket.recv(1024).decode())
+    msgRecv = 0
     fragment = []
-    while True:
-        chunk = clientSocket.recv(1024)
-        if not chunk:
-            break
-        fragment.append(chunk.decode())
+    while msgRecv < msgLen:
+        chunk = clientSocket.recv(1024).decode()
+        fragment.append(chunk)
+        msgRecv += len(chunk)
     receivedMessage = "".join(fragment)
-    #print ('server response received: ')
-    print (receivedMessage) # Print the reply on the screen
+    if 'dbdownload' in receivedMessage:
+        splitMessage = receivedMessage.split('\n')
+        splitMessage.pop(0)
+        dbD = open('filename.txt', 'w')
+        for item in splitMessage:
+            dbD.write(item + '\n')
+        dbD.close()
+        print('Operation was completed successfully.')
+    else:
+        #print ('server response received: ')
+        print (receivedMessage) # Print the reply on the screen
     clientSocket.close()
