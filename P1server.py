@@ -1,19 +1,24 @@
 from ast import arg
 from socket import *
-class Node: # Customer Record Class
-    def __init__(self,customerID, customerFirstName, customerLastName, customerPhone, customerAddress):
+
+
+class Node:  # Customer Record Class
+    def __init__(self, customerID, customerFirstName, customerLastName, customerPhone, customerAddress):
         self.id = customerID
         self.first = customerFirstName
         self.last = customerLastName
         self.phone = customerPhone
         self.address = customerAddress
+
     def display(self):  # display record
         return 'Customer record: ' + str(self.id) + ' ; ' + self.first + ' ; ' + self.last + ' ; ' + self.phone + ' ; ' + self.address + '\n'
 
-class customerDB: # Customer Database Class
+
+class customerDB:  # Customer Database Class
     def __init__(self):
         self.db = []
-    def showAll(self): # display all records
+
+    def showAll(self):  # display all records
         allRecords = ''
         for record in self.db:
             allRecords = allRecords + record.display()
@@ -22,25 +27,31 @@ class customerDB: # Customer Database Class
         else:
             return allRecords
 
+
 nextCustomerID = 0
 
 cDB = customerDB()  # create customer database
-#Fill in start                                                              
-#Many lines of code to fill in here for other functions
-#Fill in end  
+#Fill in start
+# Many lines of code to fill in here for other functions
+#Fill in end
+
+
 def showAll():
     return cDB.showAll()
-    
+
+
 def show(function):
     for entry in cDB.db:
         if entry.id == int(function[1]):
             return entry.display()
     return 'ERROR: No match was found!'
 
+
 def insert(ID, function):
     customer = Node(ID, function[1], function[2], function[3], function[4])
     cDB.db.append(customer)
     return 'Operation was completed successfully.'
+
 
 def remove(function):
     for entry in cDB.db:
@@ -49,11 +60,13 @@ def remove(function):
             return 'Operation was completed successfully.'
     return 'ERROR: No match was found!'
 
+
 def search(function):
     for entry in cDB.db:
         if entry.last == str(function[1]):
             return entry.display()
     return 'ERROR: No match was found!'
+
 
 def change(function):
     for entry in cDB.db:
@@ -65,20 +78,21 @@ def change(function):
             return 'Operation was completed successfully.'
     return 'ERROR: No match was found!'
 
+
 def dbupload(function):
-    #we get function here as a list with each word separately, no spaces. Need to reassemble each customer by line
-    database = "".join(function)
-    print(database)
-    DL = database.split("\n")
+    # we get function here as a list with each word separately, no spaces. Need to reassemble each customer by line
+    # function.pop()
+    database = " ".join(function)
+    DL = database.split('Customer record: ')
     cDB.db.clear()
-    print(DL)
     for item in DL:
-        ignore = {'Customer', 'record:', '\n'}
-        if item not in ignore:
+        if item != '':
             customer = item.split(' ; ')
-            custN = Node(int(customer[0]), customer[1], customer[2], customer[3], customer[4])
+            custN = Node(int(customer[0]), customer[1],
+                         customer[2], customer[3], customer[4])
             cDB.db.append(custN)
     return 'Operation was completed successfully.'
+
 
 def dbdownload():
     dbRet = ['dbdownload\n']
@@ -91,20 +105,22 @@ def dbdownload():
     #     DBFile.write(item.display() + '\n')
     # DBFile.close()
     # return 'Operation was completed successfully.'
-        
+
+
 def argnum_error(code):
     message = 'This command takes {} arguments. Check argument list and try again.'
     return message.format(str(code))
 
-#Fill in start                                                              
+#Fill in start
 # Many lines of code to fill in here
 #Fill in end
 
+
 serverPort = 8889
-serverSocket = socket(AF_INET,SOCK_STREAM)
+serverSocket = socket(AF_INET, SOCK_STREAM)
 serverSocket.bind(('', serverPort))
 serverSocket.listen(1)
-print ('The server is ready to receive...')
+print('The server is ready to receive...')
 while True:
     connectionSocket, addr = serverSocket.accept()
     msgLen = int(connectionSocket.recv(1024).decode())
@@ -131,7 +147,7 @@ while True:
                 response = argnum_error(1)
         case 'insert':
             if len(function) == 5:
-                nextCustomerID+=1
+                nextCustomerID += 1
                 response = insert(nextCustomerID, function)
             else:
                 response = argnum_error(4)
@@ -156,7 +172,8 @@ while True:
             else:
                 response = argnum_error(0)
         case 'dbupload':
-            response = dbupload(function) #this is going to take significantly more work...
+            # this is going to take significantly more work...
+            response = dbupload(function[1:])
         case 'exit':
             break
         case _:

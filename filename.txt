@@ -1,5 +1,0 @@
-Customer record: 1 ; blake ; smith ; 111 ; place
-Customer record: 2 ; song ; koh ; 222 ; otherplace
-Customer record: 3 ; gary ; greg ; 333 ; jkl
-Customer record: 4 ; joe ; jon ; 444 ; mno
-
